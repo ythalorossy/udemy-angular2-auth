@@ -1,7 +1,8 @@
-import { Component } from "@angular/core";
+import {Component, OnDestroy} from "@angular/core";
 import { ROUTER_DIRECTIVES } from '@angular/router';
 
 import { AuthService } from './auth.service';
+import {Subscription} from "rxjs/Rx";
 
 @Component({
     selector: 'my-header',
@@ -27,15 +28,27 @@ import { AuthService } from './auth.service';
     `,
     directives: [ ROUTER_DIRECTIVES ]
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnDestroy {
 
-    constructor(private authService: AuthService) { }
+    isAuthenticated: boolean = false;
+
+    private subscription: Subscription;
+
+    constructor(private authService: AuthService) {
+        this.subscription = this.authService.isAuthenticated().subscribe(
+            authStatus => this.isAuthenticated = authStatus
+        );
+    }
     
     isAuth() {
-        return this.authService.isAuthenticated();
+        return this.isAuthenticated;
     }
 
     logout() {
         this.authService.logout();
+    }
+
+    ngOnDestroy() {
+        this.subscription.unsubscribe();
     }
 }
